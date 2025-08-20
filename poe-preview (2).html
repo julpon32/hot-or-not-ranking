@@ -1,0 +1,617 @@
+<!DOCTYPE html><html lang="ru"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hot-or-Not Ранжирование заведений</title>
+  <style>
+    :root {
+      --bg: #0f172a; /* ?? */
+      --panel: #e7caa2; /* области экрана */
+      --text: #400f21; /* осн текст */
+      --muted: #400f21a6; /* доп текст */
+      --accent: #6ca11c; /* кнопки выбора */
+      --accent-2: #60a5fa; /* кнопка загрузки */
+      --danger: #f87171; /* кнопка очистки */
+      --warn: #f59e0b; /* кнопка отмены */
+      --card: rgba(211, 104, 143, 0.8); /* карточка заведения */
+      --btn: #e6be85; /* кнопка пропуска и пересбора */
+      --btn-hover: #4b5563; /*  */
+      --border: #a5814e; /* границы областей */
+      --red: #ef4444; /*  */
+      --yellow: #f59e0b; /*  */
+      --green: #22c55e; /*  */
+      --lime: #6ca11c; /* салатовый */
+      --lime-text: #10210a; /*  */
+      --full-background: #e7c0ad;
+    }
+    * { box-sizing: border-box; }
+    body { /* задний фон */
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      background: linear-gradient(180deg,#e7d2a2, #d6c9ab 20%, #71471d);
+      color: var(--text);
+    }
+    header {
+      padding: 16px; border-bottom: 1px solid var(--border); background: rgba(211, 104, 143, 0.7);
+      position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 10;
+    }
+    .container { max-width: 980px; margin: 0 auto; padding: 16px; }
+    .title { font-size: 20px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .panel { 
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px;
+      box-shadow: 0 10px 30px rgba(231, 202, 162,0.25);
+    }
+    .pair {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;
+    }
+    @media (max-width: 720px) {
+      .pair { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+      display: flex; flex-direction: column; gap: 12px; min-height: 140px; justify-content: space-between;
+    }
+    .place-name { font-size: 18px; font-weight: 700; }
+    .meta { font-size: 12px; color: var(--muted); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      background: var(--btn); color: var(--text); border: 1px solid var(--border);
+      padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 600;
+    }
+    button:hover { background: var(--btn-hover); }
+    .primary { background: linear-gradient(135deg, var(--accent), #a8b333); border: none; color: #240618; }
+    .primary:hover { filter: brightness(0.95); }
+    .secondary { background: linear-gradient(135deg, var(--accent-2), #2563eb); border: none; color: #280618; }
+    .danger { background: linear-gradient(135deg, #ef4444, #b91c1c); border: none; }
+    .warn { background: linear-gradient(135deg, #f59e0b, #d97706); border: none; }
+    .lime { background: linear-gradient(135deg, var(--lime), #a8b333); border: none; color: var(--lime-text); }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .grow { flex: 1; }
+    .small { font-size: 12px; color: var(--muted); }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--panel); font-size: 12px; color: var(--muted); }
+    .footer { font-size: 12px; color: var(--muted); margin-top: 12px; }
+    .grid { display: grid; gap: 8px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 720px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    input, textarea, select { /* поля ввода */
+      background: #d6b991; border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px;
+      width: 100%;
+    }
+    textarea { margin: 4px 2px; min-height: 80px; }
+    code.inline { background: #b9935e; padding: 4px 6px; border-radius: 2px; border: 8px solid var(--border); }
+    .stats { margin: 4px 2px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .stat { /* поля с настройками */
+      background: #ebd8bb; border: 1px solid var(--border); padding: 8px 10px; border-radius: 10px; font-size: 12px; color: var(--muted);
+    }
+    .ranklist { margin-top: 8px; max-height: 300px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .ranklist table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ranklist th, .ranklist td { padding: 8px; border-bottom: 1px solid var(--border); }
+    .muted { color: var(--muted); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.red { background: var(--red); }
+    .dot.yellow { background: var(--yellow); }
+    .dot.green { background: var(--green); }
+    .counter { font-size: 12px; color: var(--muted); margin-top: 6px; text-align: right; }
+  </style>
+<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.bd4eeeb8e8e02052ee92.js"></script></head>
+<body>
+  <header>
+    <div class="container">
+      <div class="title">Hot-or-Not ранжирование заведений</div>
+      <div class="subtitle">Выбирайте лучшее из пары. Алгоритм обновляет рейтинг и формирует общий порядок.</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="panel">
+      <div class="grid grid-2">
+        <div>
+          <label>Список заведений (по одному в строке, до 100):</label>
+          <textarea id="placesInput" placeholder="Ромашка
+Уголёк
+Персик" style="width: 382px; height: 355px;"></textarea>
+          <div class="counter" id="placesCounter">0 заведений</div>
+          <div class="row" style="margin-top:8px;">
+            <button id="loadPlaces" class="secondary">Загрузить список</button>
+            <button id="addDummy" title="Добавить 100 тестовых" class="pill">Добавить демо 100</button>
+          </div>
+        </div>
+        <div>
+          <label>Настройки алгоритма:</label>
+          <div class="row" style="margin-top:8px;">
+            <div class="pill">Метод: <select id="method">
+              <option value="trueskill">TrueSkill (стабильнее)</option>
+              <option value="elo">ELO (проще)</option>
+            </select></div>
+            <div class="pill">Эксплор: <select id="explore">
+              <option value="smart">Умный</option>
+              <option value="random">Случайный</option>
+              <option value="nearby">Близкие рейтинги</option>
+            </select></div>
+            <div class="pill">Seed: <input id="seed" type="text" placeholder="опц." style="width:120px"></div>
+          </div>
+          <div class="stats" style="margin-top:8px;">
+            <div class="stat">Сравнений: <span id="cmpCount">0</span></div>
+            <div class="stat">Заведений: <span id="placeCount">0</span></div>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <button id="exportJSON">Экспорт JSON</button>
+            <button id="exportCSV">Экспорт CSV</button>
+            <button id="downloadRank" class="lime">Скачать рейтинг (XLSX)</button>
+            <label class="pill">Импорт JSON <input id="importJSON" type="file" accept=".json"></label>
+            <button id="clearData" class="danger">Очистить всё</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <div class="grow">
+          <div class="small">Выберите лучшее заведение</div>
+          <div class="subtitle" id="pairLabel">Загрузите список, чтобы начать</div>
+          <div class="small" id="progressLabel">
+            <span class="dot red" id="progressDot"></span>
+            <span id="progressText">0 / 0 сравнений • статус: ожидание</span>
+          </div>
+        </div>
+        <div class="row">
+          <button id="undo" class="warn" disabled="">Отменить последнее</button>
+          <button id="skip">Пропустить пару</button>
+          <button id="reshuffle">Пересобрать пары</button>
+        </div>
+      </div>
+
+      <div id="pair" class="pair" style="margin-top:12px;">
+        <div class="card" id="leftCard" style="display:none"></div>
+        <div class="card" id="rightCard" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <div class="grow"><div class="small">Текущий рейтинг и порядок</div></div>
+        <div class="row">
+          <div class="pill">Сортировка: 
+            <select id="sortMode">
+              <option value="trueskill">mu-3sigma (надёжная)</option>
+              <option value="mu">mu</option>
+              <option value="elo">ELO</option>
+              <option value="wins">Победы</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="ranklist" id="rankList"></div>
+      <div class="footer">Совет: объём нужных сравнений рассчитывается автоматически на основе количества заведений.</div>
+    </div>
+  </main>
+
+  <!-- SheetJS (xlsx) — мини-вариант через CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    // --- Thresholds computed from N places ---
+    function computeThresholds(n){
+      if(n <= 1) return { min: 0, target: 0 };
+      const log2n = Math.log2 ? Math.log2(n) : (Math.log(n)/Math.log(2));
+      // Настраиваемые коэффициенты:
+      const kMin = 1.5;  // быстрый грубый порядок
+      const kTarget = 4; // более устойчивый порядок
+      return {
+        min: Math.ceil(kMin * n * log2n),
+        target: Math.ceil(kTarget * n * log2n)
+      };
+    }
+
+    // --- Utilities ---
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    // Seeded RNG
+    function xmur3(str) { for(var i=0,h=1779033703^str.length;i<str.length;i++) h=Math.imul(h^str.charCodeAt(i),3432918353),h=h<<13|h>>>19; return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0} }
+    function mulberry32(a){ return function(){var t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15, t|1); t^= t + Math.imul(t^t>>>7, t|61); return ((t^t>>>14)>>>0)/4294967296 } }
+    function rngFromSeed(seed){ if(!seed) return Math.random; const h=xmur3(seed); return mulberry32(h()); }
+    function shuffle(arr, rnd=Math.random){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+    // --- Persistence ---
+    const STORE_KEY = 'hotornot_v1';
+    function loadState(){
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || null; } catch { return null; }
+    }
+    function saveState(state){
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    }
+
+    // --- Models ---
+    const TS_DEFAULT = { mu: 25, sigma: 25/3, beta: 25/6, tau: 25/300, draw: 0.0 };
+    function phi(x){ return Math.exp(-0.5*x*x)/Math.sqrt(2*Math.PI); }
+    function Phi(x){ return 0.5*(1+erf(x/Math.SQRT2)); }
+    function erf(x){
+      const sign = x>=0 ? 1 : -1; x = Math.abs(x);
+      const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+      const t=1/(1+p*x); const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x); return sign*y;
+    }
+    function trueskillUpdate(pA, pB, winner, cfg=TS_DEFAULT){
+      const {beta,tau} = cfg;
+      const c2 = 2*beta*beta + pA.sigma*pA.sigma + pB.sigma*pB.sigma;
+      const c = Math.sqrt(c2);
+      const t = (pA.mu - pB.mu)/c;
+      const outcome = winner==='A' ? 1 : winner==='B' ? -1 : 0;
+      const v = phi(outcome*t)/Math.max(1e-9, Phi(outcome*t));
+      const w = v*(v + outcome*t);
+      const muA = pA.mu + (pA.sigma*pA.sigma / c) * outcome * v;
+      const muB = pB.mu - (pB.sigma*pB.sigma / c) * outcome * v;
+      const sigmaAdj = 1 - w * ((pA.sigma*pA.sigma + pB.sigma*pB.sigma) / c2);
+      const sigmaA = Math.sqrt( Math.max(1e-6, pA.sigma*pA.sigma * sigmaAdj ) ) + tau;
+      const sigmaB = Math.sqrt( Math.max(1e-6, pB.sigma*pB.sigma * sigmaAdj ) ) + tau;
+      return [{mu:muA, sigma:sigmaA}, {mu:muB, sigma:sigmaB}];
+    }
+    function eloExpected(rA, rB){ return 1/(1+Math.pow(10, (rB-rA)/400)); }
+    function eloUpdate(rA, rB, winner, K=24){
+      const eA = eloExpected(rA, rB);
+      const sA = winner==='A' ? 1 : winner==='B' ? 0 : 0.5;
+      const sB = 1 - sA;
+      return [rA + K*(sA-eA), rB + K*(sB-(1-eA))];
+    }
+
+    // --- Core state ---
+    let state = loadState() || {
+      places: [],
+      comps: [],
+      seed: '',
+      method: 'trueskill',
+      explore: 'smart'
+    };
+
+    // thresholds cache based on current places count
+    let thresholds = computeThresholds(0);
+
+    function initUIFromState(){
+      thresholds = computeThresholds(state.places.length);
+      $('#method').value = state.method || 'trueskill';
+      $('#explore').value = state.explore || 'smart';
+      $('#seed').value = state.seed || '';
+      $('#placeCount').textContent = state.places.length.toString();
+      $('#cmpCount').textContent = state.comps.length.toString();
+      $('#methodLabel').textContent = state.method === 'elo' ? 'ELO' : 'TrueSkill';
+      updatePlacesCounterTextarea();
+      renderPair();
+      renderRank();
+      renderProgress();
+    }
+
+    // --- Place management ---
+    function addPlacesFromText(text){
+      const names = text.split('\n').map(s=>s.trim()).filter(Boolean);
+      const existing = new Set(state.places.map(p=>p.name));
+      const newOnes = names.filter(n => !existing.has(n));
+      const nextId = () => state.places.length ? Math.max(...state.places.map(p=>p.id))+1 : 1;
+      newOnes.forEach(n=>{
+        state.places.push({
+          id: nextId(),
+          name: n,
+          mu: TS_DEFAULT.mu,
+          sigma: TS_DEFAULT.sigma,
+          elo: 1500,
+          wins: 0,
+          losses: 0,
+          comparisons: 0
+        });
+      });
+      thresholds = computeThresholds(state.places.length);
+      $('#placeCount').textContent = state.places.length.toString();
+      saveState(state);
+      renderRank();
+      renderProgress();
+    }
+
+    function addDemo100(){
+      const arr = [];
+      for(let i=1;i<=100;i++) arr.push('Заведение ' + i.toString().padStart(3,'0'));
+      $('#placesInput').value = arr.join('\n');
+      updatePlacesCounterTextarea();
+    }
+
+    // --- Pair selection strategy ---
+    function choosePair(){
+      if(state.places.length < 2) return null;
+      const rnd = rngFromSeed(state.seed || (''+Date.now()));
+      const arr = state.places.slice();
+      const minCmp = Math.min(...arr.map(p=>p.comparisons));
+      const lowCmp = arr.filter(p=>p.comparisons === minCmp);
+      const pool = lowCmp.length >= 4 ? lowCmp : arr;
+      const mode = state.explore || 'smart';
+      let a,b;
+      if(mode==='random'){
+        a = pool[Math.floor(rnd()*pool.length)];
+        do { b = arr[Math.floor(rnd()*arr.length)]; } while (b.id===a.id);
+      } else if(mode==='nearby'){
+        arr.sort((x,y)=>currentScore(y)-currentScore(x));
+        const i = Math.floor(rnd()*Math.min(20, arr.length));
+        a = arr[i];
+        const win = Math.min(10, arr.length-1);
+        const jOffset = 1 + Math.floor(rnd()*win);
+        b = arr[Math.min(arr.length-1, Math.max(0, i + (rnd()<0.5 ? -jOffset : jOffset)))];
+        if(a.id===b.id){ b = arr[(i+1)%arr.length]; }
+      } else {
+        const coin = rnd();
+        if(coin < 0.6){
+          arr.sort((x,y)=>currentScore(y)-currentScore(x));
+          const i = Math.floor(rnd()*arr.length);
+          a = arr[i];
+          const j = Math.min(arr.length-1, Math.max(0, i + (rnd()<0.5?-1:1)*(1+Math.floor(rnd()*4))));
+          b = arr[j];
+          if(a.id===b.id) b = arr[(j+1)%arr.length];
+        } else {
+          a = pool[Math.floor(rnd()*pool.length)];
+          do { b = arr[Math.floor(rnd()*arr.length)]; } while (b.id===a.id);
+        }
+      }
+      return [a.id, b.id];
+    }
+
+    function currentScore(p){
+      if(state.method==='elo') return p.elo;
+      return p.mu - 3*p.sigma;
+    }
+    function getPlace(id){ return state.places.find(p=>p.id===id); }
+
+    // --- Comparison handling ---
+    function recordComparison(aId, bId, winner){
+      const a = getPlace(aId); const b = getPlace(bId);
+      const before = { aTS:{mu:a.mu,sigma:a.sigma}, bTS:{mu:b.mu,sigma:b.sigma}, aELO:a.elo, bELO:b.elo };
+      if(state.method==='elo'){
+        const [newA,newB] = eloUpdate(a.elo, b.elo, winner);
+        a.elo = newA; b.elo = newB;
+      } else {
+        const [aNew, bNew] = trueskillUpdate(a, b, winner);
+        a.mu = aNew.mu; a.sigma = aNew.sigma;
+        b.mu = bNew.mu; b.sigma = bNew.sigma;
+      }
+      a.comparisons++; b.comparisons++;
+      if(winner==='A'){ a.wins++; b.losses++; }
+      else if(winner==='B'){ b.wins++; a.losses++; }
+      const after = { aTS:{mu:a.mu,sigma:a.sigma}, bTS:{mu:b.mu,sigma:b.sigma}, aELO:a.elo, bELO:b.elo };
+      state.comps.push({ ts: Date.now(), aId, bId, winner, before, after });
+      $('#cmpCount').textContent = state.comps.length.toString();
+      $('#undo').disabled = state.comps.length===0;
+      saveState(state);
+    }
+
+    function undoLast(){
+      const last = state.comps.pop();
+      if(!last) return;
+      const a = getPlace(last.aId), b = getPlace(last.bId);
+      a.mu = last.before.aTS.mu; a.sigma = last.before.aTS.sigma; a.elo = last.before.aELO;
+      b.mu = last.before.bTS.mu; b.sigma = last.before.bTS.sigma; b.elo = last.before.bELO;
+      a.comparisons--; b.comparisons--;
+      if(last.winner==='A'){ a.wins--; b.losses--; }
+      else if(last.winner==='B'){ b.wins--; a.losses--; }
+      $('#cmpCount').textContent = state.comps.length.toString();
+      $('#undo').disabled = state.comps.length===0;
+      saveState(state);
+    }
+
+    // --- Rendering ---
+    let currentPair = null;
+
+    function renderPair(){
+      const l = $('#leftCard'), r = $('#rightCard');
+      if(state.places.length < 2){
+        l.style.display='none'; r.style.display='none';
+        $('#pairLabel').textContent = 'Добавьте минимум 2 заведения и нажмите "Загрузить список".';
+        renderProgress();
+        return;
+      }
+      currentPair = choosePair();
+      if(!currentPair){ l.style.display='none'; r.style.display='none'; renderProgress(); return; }
+      const [aId,bId] = currentPair;
+      const a = getPlace(aId), b = getPlace(bId);
+      $('#pairLabel').textContent = `Пара #${state.comps.length+1}`;
+      l.style.display='flex'; r.style.display='flex';
+      l.innerHTML = `
+        <div class="place-name">${escapeHtml(a.name)}</div>
+        <div class="meta">Сравнений: ${a.comparisons} • Победы: ${a.wins} • Поражения: ${a.losses}</div>
+        <div class="row">
+          <button class="primary" id="chooseA">Выбрать "${escapeHtml(a.name)}"</button>
+          <span class="pill">Счёт: ${formatScore(a)}</span>
+        </div>
+      `;
+      r.innerHTML = `
+        <div class="place-name">${escapeHtml(b.name)}</div>
+        <div class="meta">Сравнений: ${b.comparisons} • Победы: ${b.wins} • Поражения: ${b.losses}</div>
+        <div class="row">
+          <button class="primary" id="chooseB">Выбрать "${escapeHtml(b.name)}"</button>
+          <span class="pill">Счёт: ${formatScore(b)}</span>
+        </div>
+      `;
+      $('#chooseA').onclick = ()=>{ handleChoice('A'); };
+      $('#chooseB').onclick = ()=>{ handleChoice('B'); };
+      renderProgress();
+    }
+
+    function renderProgress(){
+      const total = state.comps.length;
+      // обновляем thresholds на случай изменения количества заведений
+      thresholds = computeThresholds(state.places.length);
+      const minNeeded = thresholds.min;
+      const target = thresholds.target;
+      let colorClass = 'red';
+      let statusText = 'недостаточно данных';
+      if(target === 0){
+        colorClass = 'red';
+        statusText = 'ожидание';
+      } else if(total >= target){ colorClass = 'green'; statusText = 'данных достаточно'; }
+      else if(total >= minNeeded){ colorClass = 'yellow'; statusText = 'минимум пройден'; }
+      $('#progressDot').className = 'dot ' + colorClass;
+      $('#progressText').textContent = `${total} / ${target} сравнений • минимум: ${minNeeded} • статус: ${statusText}`;
+    }
+
+    function formatScore(p){
+      if(state.method==='elo') return Math.round(p.elo);
+      const conservative = p.mu - 3*p.sigma;
+      return `${(p.mu).toFixed(1)}μ / ${(p.sigma).toFixed(2)}σ / ${(conservative).toFixed(1)}c`;
+    }
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    function handleChoice(who){
+      if(!currentPair) return;
+      const [aId,bId] = currentPair;
+      recordComparison(aId,bId, who);
+      renderPair(); renderRank();
+    }
+
+    function renderRank(){
+      if(state.places.length===0){ $('#rankList').innerHTML=''; return; }
+      const mode = $('#sortMode').value;
+      const arr = state.places.slice();
+      if(mode==='elo') arr.sort((a,b)=>b.elo - a.elo);
+      else if(mode==='mu') arr.sort((a,b)=>b.mu - a.mu);
+      else if(mode==='wins') arr.sort((a,b)=> (b.wins - a.wins) || (a.losses - b.losses));
+      else arr.sort((a,b)=> (b.mu - 3*b.sigma) - (a.mu - 3*a.sigma));
+      const rows = arr.map((p,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${escapeHtml(p.name)}</td>
+          <td class="muted">${p.comparisons}</td>
+          <td>${state.method==='elo' ? Math.round(p.elo) : (p.mu - 3*p.sigma).toFixed(1)}</td>
+          <td class="muted">${state.method==='elo' ? '' : `${p.mu.toFixed(1)} / ${p.sigma.toFixed(2)}`}</td>
+          <td class="muted">${p.wins}-${p.losses}</td>
+        </tr>
+      `).join('');
+      $('#rankList').innerHTML = `
+        <table>
+          <thead>
+            <tr><th>#</th><th>Заведение</th><th>Cравнений</th><th>Счёт</th><th>${state.method==='elo'?'':'μ/σ'}</th><th>W-L</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    // --- Export/Import + Download rank (CSV & XLSX) ---
+    function exportJSON(){
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+      downloadBlob(blob, 'hotornot_state.json');
+    }
+    function currentRankingArray(){
+      // Возвращает массив объектов для экспорта
+      const arr = state.places.slice().sort((a,b)=> (b.mu - 3*b.sigma) - (a.mu - 3*a.sigma));
+      return arr.map((p,i)=>({
+        rank: i+1,
+        name: p.name,
+        mu: round(p.mu, 6),
+        sigma: round(p.sigma, 6),
+        conservative: round(p.mu - 3*p.sigma, 6),
+        elo: round(p.elo, 2),
+        wins: p.wins,
+        losses: p.losses,
+        comparisons: p.comparisons
+      }));
+    }
+    function round(x, d){ const k = Math.pow(10,d); return Math.round(x*k)/k; }
+    function currentRankingCSV(){
+      const header = ['rank','name','mu','sigma','conservative','elo','wins','losses','comparisons'].join(',');
+      const rows = currentRankingArray().map(r=>[
+        r.rank, csv(r.name), fix(r.mu), fix(r.sigma), fix(r.conservative), fix(r.elo), r.wins, r.losses, r.comparisons
+      ].join(','));
+      return header+'\n'+rows.join('\n');
+    }
+    function fix(v){ return (v===undefined || v===null || Number.isNaN(v)) ? '' : String(v); }
+    function exportCSV(){
+      const blob = new Blob([currentRankingCSV()], {type:'text/csv'});
+      downloadBlob(blob, 'hotornot_rank.csv');
+    }
+    async function downloadRankXLSX(){
+      const data = currentRankingArray();
+      // Преобразуем в массив массивов для SheetJS
+      const header = ['#','Заведение','mu','sigma','mu-3sigma','ELO','Победы','Поражения','Сравнений'];
+      const rows = data.map(r=>[
+        r.rank, r.name, r.mu, r.sigma, r.conservative, r.elo, r.wins, r.losses, r.comparisons
+      ]);
+      const wsData = [header, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      // Автоширина колонок
+      const colWidths = header.map((h, idx)=>{
+        const maxLen = Math.max(
+          String(h).length,
+          ...rows.map(row => String(row[idx]??'').length)
+        );
+        return { wch: Math.min(Math.max(8, maxLen + 2), 40) };
+      });
+      ws['!cols'] = colWidths;
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Рейтинг');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      downloadBlob(blob, 'hotornot_rank.xlsx');
+    }
+    function csv(s){ return `"${String(s).replace(/"/g,'""')}"`; }
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+    function importJSONFile(file){
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        try {
+          const data = JSON.parse(e.target.result);
+          if(!data || !Array.isArray(data.places)) throw new Error('Неверный формат');
+          state = data;
+          thresholds = computeThresholds(state.places.length);
+          saveState(state);
+          initUIFromState();
+        } catch(err){
+          alert('Ошибка импорта: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // --- UI helpers ---
+    function updatePlacesCounterTextarea(){
+      const count = $('#placesInput').value.split('\n').map(s=>s.trim()).filter(Boolean).length;
+      $('#placesCounter').textContent = `${count} ${pluralize(count, 'заведение', 'заведения', 'заведений')}`;
+    }
+    function pluralize(n, one, few, many){
+      const n10 = n % 10, n100 = n % 100;
+      if(n10 === 1 && n100 !== 11) return one;
+      if(n10 >=2 && n10 <=4 && (n100 < 12 || n100 > 14)) return few;
+      return many;
+    }
+
+    // --- Events ---
+    $('#placesInput').addEventListener('input', updatePlacesCounterTextarea);
+
+    $('#loadPlaces').onclick = ()=>{
+      const text = $('#placesInput').value.trim();
+      if(!text){ alert('Введите список заведений'); return; }
+      addPlacesFromText(text);
+      renderPair(); renderRank();
+    };
+    $('#addDummy').onclick = addDemo100;
+    $('#undo').onclick = ()=>{ undoLast(); renderPair(); renderRank(); renderProgress();};
+    $('#skip').onclick = ()=>{ renderPair(); };
+    $('#reshuffle').onclick = ()=>{ renderPair(); };
+    $('#method').onchange = (e)=>{ state.method = e.target.value; $('#methodLabel').textContent = state.method==='elo'?'ELO':'TrueSkill'; saveState(state); renderRank(); renderPair(); renderProgress(); };
+    $('#explore').onchange = (e)=>{ state.explore = e.target.value; saveState(state); renderPair(); };
+    $('#seed').oninput = (e)=>{ state.seed = e.target.value; saveState(state); };
+    $('#sortMode').onchange = ()=> renderRank();
+    $('#exportJSON').onclick = exportJSON;
+    $('#exportCSV').onclick = exportCSV;
+    $('#downloadRank').onclick = downloadRankXLSX;
+    $('#importJSON').onchange = (e)=>{ if(e.target.files?.[0]) importJSONFile(e.target.files[0]); };
+    $('#clearData').onclick = ()=>{
+      if(confirm('Удалить все данные?')){ state = { places:[], comps:[], seed:'', method:'trueskill', explore:'smart' }; thresholds = computeThresholds(0); saveState(state); initUIFromState(); }
+    };
+
+    // Initialize
+    initUIFromState();
+  </script>
+
+
+</body></html>
