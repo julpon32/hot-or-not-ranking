@@ -279,7 +279,7 @@
       $('#methodLabel').textContent = state.method === 'elo' ? 'ELO' : 'TrueSkill';
       updatePlacesCounterTextarea();
       renderPair();
-      renderRank();
+      /* renderRank(); */
       renderProgress();
     }
 
@@ -304,7 +304,7 @@
       thresholds = computeThresholds(state.places.length);
       $('#placeCount').textContent = state.places.length.toString();
       saveState(state);
-      renderRank();
+      /* renderRank(); */
       renderProgress();
     }
 
@@ -461,11 +461,15 @@
       if(!currentPair) return;
       const [aId,bId] = currentPair;
       recordComparison(aId,bId, who);
-      renderPair(); renderRank();
+      renderPair(); /* renderRank(); */
     }
 
     function renderRank(){
-      if(state.places.length===0){ $('#rankList').innerHTML=''; return; }
+      const rankList = document.querySelector('#rankList');
+      const sortSel = document.querySelector('#sortMode');
+      if(!rankList || !sortSel){ return; } // панель скрыта
+      if(state.places.length===0){ rankList.innerHTML=''; return; }
+      // if(state.places.length===0){ $('#rankList').innerHTML=''; return; }
       const mode = $('#sortMode').value;
       const arr = state.places.slice();
       if(mode==='elo') arr.sort((a,b)=>b.elo - a.elo);
@@ -592,16 +596,16 @@
       const text = $('#placesInput').value.trim();
       if(!text){ alert('Введите список заведений'); return; }
       addPlacesFromText(text);
-      renderPair(); renderRank();
+      renderPair(); /* renderRank() */;
     };
     $('#addDummy').onclick = addDemo100;
-    $('#undo').onclick = ()=>{ undoLast(); renderPair(); renderRank(); renderProgress();};
+    $('#undo').onclick = ()=>{ undoLast(); renderPair(); /* renderRank() */; renderProgress();};
     $('#skip').onclick = ()=>{ renderPair(); };
     $('#reshuffle').onclick = ()=>{ renderPair(); };
     $('#method').onchange = (e)=>{ state.method = e.target.value; $('#methodLabel').textContent = state.method==='elo'?'ELO':'TrueSkill'; saveState(state); renderRank(); renderPair(); renderProgress(); };
     $('#explore').onchange = (e)=>{ state.explore = e.target.value; saveState(state); renderPair(); };
     $('#seed').oninput = (e)=>{ state.seed = e.target.value; saveState(state); };
-    $('#sortMode').onchange = ()=> renderRank();
+    /* $('#sortMode').onchange = ()=> renderRank(); */
     $('#exportJSON').onclick = exportJSON;
     $('#exportCSV').onclick = exportCSV;
     $('#downloadRank').onclick = downloadRankXLSX;
