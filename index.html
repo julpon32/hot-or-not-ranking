@@ -99,7 +99,7 @@
   <header>
     <div class="container">
       <div class="title">Hot-or-Not ранжирование заведений</div>
-      <div class="subtitle">Выбирайте лучшее из пары. Алгоритм обновляет рейтинг и формирует общий порядок.</div>
+      <div class="subtitle">Выбирайте лучшее из пары.</div>
     </div>
   </header>
 
@@ -121,13 +121,13 @@
           <label>Настройки алгоритма:</label>
           <div class="row" style="margin-top:8px;">
             <div class="pill">Метод: <select id="method">
-              <option value="trueskill">TrueSkill (стабильнее)</option>
-              <option value="elo">ELO (проще)</option>
+              <option value="trueskill">TrueSkill</option>
+              <option value="elo">ELO</option>
             </select></div>
             <div class="pill">Эксплор: <select id="explore">
               <option value="smart">Умный</option>
               <option value="random">Случайный</option>
-              <option value="nearby">Близкие рейтинги</option>
+              <option value="nearby">Близкие</option>
             </select></div>
             <!-- <div class="pill">Seed: <input id="seed" type="text" placeholder="опц." style="width:120px"></div> -->
           </div>
@@ -138,7 +138,7 @@
           <div class="row" style="margin-top:8px;">
             <button id="exportJSON">Экспорт JSON</button>
             <button id="exportCSV">Экспорт CSV</button>
-            <button id="downloadRank" class="lime">Скачать рейтинг (XLSX)</button>
+            <button id="downloadRank" class="lime">Скачать (XLSX)</button>
             <label class="pill">Импорт JSON <input id="importJSON" type="file" accept=".json"></label>
             <button id="clearData" class="danger">Очистить всё</button>
           </div>
