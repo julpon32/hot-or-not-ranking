@@ -136,9 +136,7 @@
             <div class="stat">Заведений: <span id="placeCount">0</span></div>
           </div>
           <div class="row" style="margin-top:8px;">
-            <!-- 
             <button id="exportJSON">Экспорт JSON</button>
-            -->
             <button id="exportCSV">Экспорт CSV</button>
             <button id="downloadRank" class="lime">Скачать рейтинг (XLSX)</button>
             <label class="pill">Импорт JSON <input id="importJSON" type="file" accept=".json"></label>
@@ -495,12 +493,10 @@
     }
 
     // --- Export/Import + Download rank (CSV & XLSX) ---
-    /*
     function exportJSON(){
       const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
       downloadBlob(blob, 'hotornot_state.json');
     }
-    */
     function currentRankingArray(){
       // Возвращает массив объектов для экспорта
       const arr = state.places.slice().sort((a,b)=> (b.mu - 3*b.sigma) - (a.mu - 3*a.sigma));
@@ -604,9 +600,9 @@
     $('#reshuffle').onclick = ()=>{ renderPair(); };
     $('#method').onchange = (e)=>{ state.method = e.target.value; $('#methodLabel').textContent = state.method==='elo'?'ELO':'TrueSkill'; saveState(state); renderRank(); renderPair(); renderProgress(); };
     $('#explore').onchange = (e)=>{ state.explore = e.target.value; saveState(state); renderPair(); };
-    // $('#seed').oninput = (e)=>{ state.seed = e.target.value; saveState(state); };
+    $('#seed').oninput = (e)=>{ state.seed = e.target.value; saveState(state); };
     $('#sortMode').onchange = ()=> renderRank();
-    // $('#exportJSON').onclick = exportJSON;
+    $('#exportJSON').onclick = exportJSON;
     $('#exportCSV').onclick = exportCSV;
     $('#downloadRank').onclick = downloadRankXLSX;
     $('#importJSON').onchange = (e)=>{ if(e.target.files?.[0]) importJSONFile(e.target.files[0]); };
