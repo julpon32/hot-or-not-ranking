@@ -1,30 +1,34 @@
-<!DOCTYPE html><html lang="ru"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta name="x-poe-datastore-behavior" content="local_only">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hot-or-Not Ранжирование заведений</title>
   <style>
     :root {
-      --bg: #0f172a; /* ?? */
-      --panel: #e7caa2; /* области экрана */
-      --text: #400f21; /* осн текст */
-      --muted: #400f21a6; /* доп текст */
-      --accent: #6ca11c; /* кнопки выбора */
-      --accent-2: #60a5fa; /* кнопка загрузки */
-      --danger: #f87171; /* кнопка очистки */
-      --warn: #f59e0b; /* кнопка отмены */
-      --card: rgba(211, 104, 143, 0.8); /* карточка заведения */
-      --btn: #e6be85; /* кнопка пропуска и пересбора */
-      --btn-hover: #4b5563; /*  */
-      --border: #a5814e; /* границы областей */
-      --red: #ef4444; /*  */
-      --yellow: #f59e0b; /*  */
-      --green: #22c55e; /*  */
-      --lime: #6ca11c; /* салатовый */
-      --lime-text: #10210a; /*  */
+      --bg: #0f172a;
+      --panel: #e7caa2;
+      --text: #400f21;
+      --muted: #400f21a6;
+      --accent: #6ca11c;
+      --accent-2: #60a5fa;
+      --danger: #f87171;
+      --warn: #f59e0b;
+      --card: rgba(211, 104, 143, 0.8);
+      --btn: #e6be85;
+      --btn-hover: #4b5563;
+      --border: #a5814e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --green: #22c55e;
+      --lime: #6ca11c;
+      --lime-text: #10210a;
       --full-background: #e7c0ad;
     }
     * { box-sizing: border-box; }
-    body { /* задний фон */
+    body {
       margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
       background: linear-gradient(180deg,#e7d2a2, #d6c9ab 20%, #71471d);
       color: var(--text);
@@ -40,12 +44,8 @@
       background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px;
       box-shadow: 0 10px 30px rgba(231, 202, 162,0.25);
     }
-    .pair {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;
-    }
-    @media (max-width: 720px) {
-      .pair { grid-template-columns: 1fr; }
-    }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+    @media (max-width: 720px) { .pair { grid-template-columns: 1fr; } }
     .card {
       background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
       display: flex; flex-direction: column; gap: 12px; min-height: 140px; justify-content: space-between;
@@ -71,19 +71,14 @@
     .footer { font-size: 12px; color: var(--muted); margin-top: 12px; }
     .grid { display: grid; gap: 8px; }
     .grid-2 { grid-template-columns: 1fr 1fr; }
-    @media (max-width: 720px) {
-      .grid-2 { grid-template-columns: 1fr; }
-    }
-    input, textarea, select { /* поля ввода */
+    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+    input, textarea, select {
       background: #d6b991; border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px;
       width: 100%;
     }
     textarea { margin: 4px 2px; min-height: 80px; }
-    code.inline { background: #b9935e; padding: 4px 6px; border-radius: 2px; border: 8px solid var(--border); }
     .stats { margin: 4px 2px; display: flex; gap: 12px; flex-wrap: wrap; }
-    .stat { /* поля с настройками */
-      background: #ebd8bb; border: 1px solid var(--border); padding: 8px 10px; border-radius: 10px; font-size: 12px; color: var(--muted);
-    }
+    .stat { background: #ebd8bb; border: 1px solid var(--border); padding: 8px 10px; border-radius: 10px; font-size: 12px; color: var(--muted); }
     .ranklist { margin-top: 8px; max-height: 300px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
     .ranklist table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .ranklist th, .ranklist td { padding: 8px; border-bottom: 1px solid var(--border); }
@@ -94,7 +89,8 @@
     .dot.green { background: var(--green); }
     .counter { font-size: 12px; color: var(--muted); margin-top: 6px; text-align: right; }
   </style>
-<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.bd4eeeb8e8e02052ee92.js"></script></head>
+  <script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.bd4eeeb8e8e02052ee92.js"></script>
+</head>
 <body>
   <header>
     <div class="container">
@@ -129,14 +125,17 @@
               <option value="random">Случайный</option>
               <option value="nearby">Близкие</option>
             </select></div>
-            <!-- <div class="pill">Seed: <input id="seed" type="text" placeholder="опц." style="width:120px"></div> -->
+            <!-- СКРЫТО: Seed (оставлено закомментированным)
+            <div class="pill">Seed: <input id="seed" type="text" placeholder="опц." style="width:120px"></div>
+            -->
           </div>
           <div class="stats" style="margin-top:8px;">
             <div class="stat">Сравнений: <span id="cmpCount">0</span></div>
             <div class="stat">Заведений: <span id="placeCount">0</span></div>
           </div>
           <div class="row" style="margin-top:8px;">
-            <button id="exportJSON">Экспорт JSON</button>
+            <!-- Если нужно скрыть Export JSON — закомментируем кнопку и обработчик ниже -->
+            <!-- <button id="exportJSON">Экспорт JSON</button> -->
             <button id="exportCSV">Экспорт CSV</button>
             <button id="downloadRank" class="lime">Скачать (XLSX)</button>
             <label class="pill">Импорт JSON <input id="importJSON" type="file" accept=".json"></label>
@@ -157,7 +156,7 @@
           </div>
         </div>
         <div class="row">
-          <button id="undo" class="warn" disabled="">Отменить последнее</button>
+          <button id="undo" class="warn" disabled>Отменить последнее</button>
           <button id="skip">Пропустить пару</button>
           <button id="reshuffle">Пересобрать пары</button>
         </div>
@@ -168,7 +167,8 @@
         <div class="card" id="rightCard" style="display:none"></div>
       </div>
     </div>
-    <!-- 
+
+    <!-- Рейтинг скрыт. Чтобы вернуть — снимите комментарии и верните вызовы renderRank().
     <div class="panel">
       <div class="row">
         <div class="grow"><div class="small">Текущий рейтинг и порядок</div></div>
@@ -189,7 +189,7 @@
     -->
   </main>
 
-  <!-- SheetJS (xlsx) — мини-вариант через CDN -->
+  <!-- SheetJS (xlsx) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
@@ -197,7 +197,6 @@
     function computeThresholds(n){
       if(n <= 1) return { min: 0, target: 0 };
       const log2n = Math.log2 ? Math.log2(n) : (Math.log(n)/Math.log(2));
-      // Настраиваемые коэффициенты:
       const kMin = 1.5;  // быстрый грубый порядок
       const kTarget = 4; // более устойчивый порядок
       return {
@@ -210,7 +209,6 @@
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
 
-    // Seeded RNG
     function xmur3(str) { for(var i=0,h=1779033703^str.length;i<str.length;i++) h=Math.imul(h^str.charCodeAt(i),3432918353),h=h<<13|h>>>19; return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0} }
     function mulberry32(a){ return function(){var t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15, t|1); t^= t + Math.imul(t^t>>>7, t|61); return ((t^t>>>14)>>>0)/4294967296 } }
     function rngFromSeed(seed){ if(!seed) return Math.random; const h=xmur3(seed); return mulberry32(h()); }
@@ -266,20 +264,19 @@
       explore: 'smart'
     };
 
-    // thresholds cache based on current places count
     let thresholds = computeThresholds(0);
 
     function initUIFromState(){
       thresholds = computeThresholds(state.places.length);
       $('#method').value = state.method || 'trueskill';
       $('#explore').value = state.explore || 'smart';
-      $('#seed').value = state.seed || '';
+      // Поле seed скрыто — не обращаемся к нему
+      // if ($('#seed')) { $('#seed').value = state.seed || ''; }
       $('#placeCount').textContent = state.places.length.toString();
       $('#cmpCount').textContent = state.comps.length.toString();
-      $('#methodLabel').textContent = state.method === 'elo' ? 'ELO' : 'TrueSkill';
       updatePlacesCounterTextarea();
       renderPair();
-      /* renderRank(); */
+      // renderRank(); // панель рейтинга скрыта
       renderProgress();
     }
 
@@ -304,7 +301,7 @@
       thresholds = computeThresholds(state.places.length);
       $('#placeCount').textContent = state.places.length.toString();
       saveState(state);
-      /* renderRank(); */
+      // renderRank(); // панель рейтинга скрыта
       renderProgress();
     }
 
@@ -435,7 +432,6 @@
 
     function renderProgress(){
       const total = state.comps.length;
-      // обновляем thresholds на случай изменения количества заведений
       thresholds = computeThresholds(state.places.length);
       const minNeeded = thresholds.min;
       const target = thresholds.target;
@@ -469,8 +465,7 @@
       const sortSel = document.querySelector('#sortMode');
       if(!rankList || !sortSel){ return; } // панель скрыта
       if(state.places.length===0){ rankList.innerHTML=''; return; }
-      // if(state.places.length===0){ $('#rankList').innerHTML=''; return; }
-      const mode = $('#sortMode').value;
+      const mode = sortSel.value;
       const arr = state.places.slice();
       if(mode==='elo') arr.sort((a,b)=>b.elo - a.elo);
       else if(mode==='mu') arr.sort((a,b)=>b.mu - a.mu);
@@ -486,7 +481,7 @@
           <td class="muted">${p.wins}-${p.losses}</td>
         </tr>
       `).join('');
-      $('#rankList').innerHTML = `
+      rankList.innerHTML = `
         <table>
           <thead>
             <tr><th>#</th><th>Заведение</th><th>Cравнений</th><th>Счёт</th><th>${state.method==='elo'?'':'μ/σ'}</th><th>W-L</th></tr>
@@ -497,12 +492,14 @@
     }
 
     // --- Export/Import + Download rank (CSV & XLSX) ---
+    // Экспорт JSON скрыт в UI; при необходимости верните кнопку и раскомментируйте:
+    /*
     function exportJSON(){
       const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
       downloadBlob(blob, 'hotornot_state.json');
     }
+    */
     function currentRankingArray(){
-      // Возвращает массив объектов для экспорта
       const arr = state.places.slice().sort((a,b)=> (b.mu - 3*b.sigma) - (a.mu - 3*a.sigma));
       return arr.map((p,i)=>({
         rank: i+1,
@@ -531,14 +528,12 @@
     }
     async function downloadRankXLSX(){
       const data = currentRankingArray();
-      // Преобразуем в массив массивов для SheetJS
       const header = ['#','Заведение','mu','sigma','mu-3sigma','ELO','Победы','Поражения','Сравнений'];
       const rows = data.map(r=>[
         r.rank, r.name, r.mu, r.sigma, r.conservative, r.elo, r.wins, r.losses, r.comparisons
       ]);
       const wsData = [header, ...rows];
       const ws = XLSX.utils.aoa_to_sheet(wsData);
-      // Автоширина колонок
       const colWidths = header.map((h, idx)=>{
         const maxLen = Math.max(
           String(h).length,
@@ -596,27 +591,43 @@
       const text = $('#placesInput').value.trim();
       if(!text){ alert('Введите список заведений'); return; }
       addPlacesFromText(text);
-      renderPair(); /* renderRank() */;
+      renderPair(); /* renderRank(); */
     };
     $('#addDummy').onclick = addDemo100;
-    $('#undo').onclick = ()=>{ undoLast(); renderPair(); /* renderRank() */; renderProgress();};
+    $('#undo').onclick = ()=>{ undoLast(); renderPair(); /* renderRank(); */ renderProgress(); };
     $('#skip').onclick = ()=>{ renderPair(); };
     $('#reshuffle').onclick = ()=>{ renderPair(); };
-    $('#method').onchange = (e)=>{ state.method = e.target.value; $('#methodLabel').textContent = state.method==='elo'?'ELO':'TrueSkill'; saveState(state); renderRank(); renderPair(); renderProgress(); };
+    $('#method').onchange = (e)=>{ 
+      state.method = e.target.value; 
+      saveState(state); 
+      // renderRank(); // панель скрыта
+      renderPair(); 
+      renderProgress(); 
+    };
     $('#explore').onchange = (e)=>{ state.explore = e.target.value; saveState(state); renderPair(); };
-    $('#seed').oninput = (e)=>{ state.seed = e.target.value; saveState(state); };
-    /* $('#sortMode').onchange = ()=> renderRank(); */
-    $('#exportJSON').onclick = exportJSON;
+
+    // Поле seed скрыто — не вешаем обработчик
+    // if ($('#seed')) { $('#seed').oninput = (e)=>{ state.seed = e.target.value; saveState(state); }; }
+
+    // if ($('#sortMode')) { $('#sortMode').onchange = ()=> renderRank(); }
+
+    // JSON экспорт скрыт в UI — не вешаем обработчик
+    // const exportJSONBtn = $('#exportJSON'); if (exportJSONBtn) exportJSONBtn.onclick = exportJSON;
+
     $('#exportCSV').onclick = exportCSV;
     $('#downloadRank').onclick = downloadRankXLSX;
     $('#importJSON').onchange = (e)=>{ if(e.target.files?.[0]) importJSONFile(e.target.files[0]); };
     $('#clearData').onclick = ()=>{
-      if(confirm('Удалить все данные?')){ state = { places:[], comps:[], seed:'', method:'trueskill', explore:'smart' }; thresholds = computeThresholds(0); saveState(state); initUIFromState(); }
+      if(confirm('Удалить все данные?')){
+        state = { places:[], comps:[], seed:'', method:'trueskill', explore:'smart' };
+        thresholds = computeThresholds(0);
+        saveState(state);
+        initUIFromState();
+      }
     };
 
     // Initialize
     initUIFromState();
   </script>
-
-
-</body></html>
+</body>
+</html>
